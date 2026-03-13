@@ -12,6 +12,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Login">
         <activity
+            android:name=".JacketActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ShoesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PantsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DressActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -20,8 +32,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".HomeActivity" android:exported="false" />
-        <activity android:name=".SignUpActivity" android:exported="false" />
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

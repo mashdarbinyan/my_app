@@ -9,7 +9,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/pink"
+    android:background="@drawable/backgroundloginsignup"
     tools:context=".MainActivity">
     
     <androidx.cardview.widget.CardView

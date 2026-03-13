@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
+
+import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -19,6 +21,7 @@ public class HomeActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     NavigationView navigationView;
     BottomNavigationView bottomNav;
+    CardView dressCard, pantsCard, shoesCard, jacketCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +30,32 @@ public class HomeActivity extends AppCompatActivity {
 
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
+
+
+        dressCard = findViewById(R.id.DressCard);
+        pantsCard = findViewById(R.id.PantsCard);
+        shoesCard = findViewById(R.id.ShoesCard);
+        jacketCard = findViewById(R.id.JacketCard);
+
+        dressCard.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, DressActivity.class);
+            startActivity(intent);
+        });
+
+        pantsCard.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, PantsActivity.class);
+            startActivity(intent);
+        });
+
+        shoesCard.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, ShoesActivity.class);
+            startActivity(intent);
+        });
+
+        jacketCard.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, JacketActivity.class);
+            startActivity(intent);
+        });
 
 
         navigationView.setNavigationItemSelectedListener(item -> {
