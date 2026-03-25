@@ -52,6 +52,11 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-database")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("com.google.guava:guava:33.0.0-android")
+
+
+
     
 
 }

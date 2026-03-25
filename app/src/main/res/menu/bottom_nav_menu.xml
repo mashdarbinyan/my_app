@@ -7,8 +7,7 @@
         android:title="Favorites" />
     <item
         android:id="@+id/bottom_add"
-        android:icon="@android:drawable/ic_input_add"
-        android:title="Add" />
+        android:title="AI chat" />
     <item
         android:id="@+id/bottom_settings"
         android:icon="@android:drawable/ic_menu_preferences"

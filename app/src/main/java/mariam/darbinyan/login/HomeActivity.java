@@ -103,7 +103,23 @@ public class HomeActivity extends AppCompatActivity {
     private void showBottomSheet() {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+
+        // 1. Inflate the view
         View view = getLayoutInflater().inflate(R.layout.bottom_sheet_layout, null);
+
+        // 2. FIND the button inside that specific inflated view
+        android.widget.Button btnStartChat = view.findViewById(R.id.btn_start_chat);
+
+        // 3. SET the click listener
+        btnStartChat.setOnClickListener(v -> {
+            // Close the bottom sheet
+            bottomSheet.dismiss();
+
+            // Open the AI Chat Activity
+            Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+            startActivity(intent);
+        });
+
         bottomSheet.setContentView(view);
         bottomSheet.show();
     }

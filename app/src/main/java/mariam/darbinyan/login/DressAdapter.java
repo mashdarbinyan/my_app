@@ -4,23 +4,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 
 public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> {
 
     private List<String> imageUrls;
+    private String categoryPath; // To know if we are in "myDresses", "myShoes", etc.
+    private String dbUrl = "https://mariam-sproject-default-rtdb.europe-west1.firebasedatabase.app/";
 
-    public DressAdapter(List<String> imageUrls) {
+    // 1. Updated Constructor to accept the category name
+    public DressAdapter(List<String> imageUrls, String categoryPath) {
         this.imageUrls = imageUrls;
+        this.categoryPath = categoryPath;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // This links to the item_dress.xml we talked about
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dress, parent, false);
         return new ViewHolder(view);
     }
@@ -29,24 +39,61 @@ public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String imageString = imageUrls.get(position);
 
+        // Display Logic
         try {
-            // 1. Convert the Base64 text back into a Byte Array
             byte[] decodedString = android.util.Base64.decode(imageString, android.util.Base64.DEFAULT);
-
-            // 2. Turn the Byte Array into a real Bitmap photo
             android.graphics.Bitmap decodedByte = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
-            // 3. Put the photo into your ImageView
             holder.imageView.setImageBitmap(decodedByte);
-
         } catch (Exception e) {
-            // Backup: If it's a normal web link, use Glide
             com.bumptech.glide.Glide.with(holder.itemView.getContext())
                     .load(imageString)
                     .placeholder(android.R.drawable.ic_menu_gallery)
                     .into(holder.imageView);
         }
+
+        // 2. DELETE LOGIC: Triggered by a long press
+        holder.itemView.setOnLongClickListener(v -> {
+            new AlertDialog.Builder(holder.itemView.getContext())
+                    .setTitle("Delete Item")
+                    .setMessage("Do you want to remove this from your wardrobe?")
+                    .setPositiveButton("Delete", (dialog, which) -> deleteFromFirebase(imageString, holder.itemView))
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            return true;
+        });
+
+        holder.imageView.setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(v.getContext(), ChatActivity.class);
+
+            // We "put" the Base64 string into the Intent to send it to the next screen
+            intent.putExtra("image_data", imageString);
+
+            v.getContext().startActivity(intent);
+        });
     }
+
+    private void deleteFromFirebase(String imageContent, View view) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference ref = FirebaseDatabase.getInstance(dbUrl)
+                .getReference("Users").child(userId).child(categoryPath);
+
+        // Find the specific item with this image data and remove it
+        ref.orderByValue().equalTo(imageContent).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    data.getRef().removeValue();
+                }
+                Toast.makeText(view.getContext(), "Item removed", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(view.getContext(), "Delete failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     @Override
     public int getItemCount() {
         return imageUrls.size();
@@ -56,7 +103,6 @@ public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> 
         ImageView imageView;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // This ID must match the ImageView inside item_dress.xml
             imageView = itemView.findViewById(R.id.imageDressItem);
         }
     }

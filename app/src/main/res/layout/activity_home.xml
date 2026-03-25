@@ -178,7 +178,7 @@
                                 android:id="@+id/jacketImage"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Jacket"
+                                android:text="Jackets"
                                 android:textSize="18sp"
                                 android:textColor="@color/purpule"
                                 android:layout_below="@id/Jacket"
