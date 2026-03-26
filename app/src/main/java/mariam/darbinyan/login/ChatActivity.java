@@ -11,6 +11,7 @@ import com.google.ai.client.generativeai.type.Content;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import mariam.darbinyan.login.BuildConfig;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -31,7 +32,7 @@ public class ChatActivity extends AppCompatActivity {
         // Use the specific model ID and define the model version explicitly
         GenerativeModel gm = new GenerativeModel(
                 "gemini-2.5-flash",
-                "AIzaSyCqiuYyaMib3Yn_BZmIEBxszuoKwUsyKcY"
+                BuildConfig.GEMINI_API_KEY
         );
         model = GenerativeModelFutures.from(gm);
 

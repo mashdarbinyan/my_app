@@ -19,10 +19,9 @@ import java.util.List;
 public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> {
 
     private List<String> imageUrls;
-    private String categoryPath; // To know if we are in "myDresses", "myShoes", etc.
+    private String categoryPath;
     private String dbUrl = "https://mariam-sproject-default-rtdb.europe-west1.firebasedatabase.app/";
 
-    // 1. Updated Constructor to accept the category name
     public DressAdapter(List<String> imageUrls, String categoryPath) {
         this.imageUrls = imageUrls;
         this.categoryPath = categoryPath;
@@ -51,40 +50,51 @@ public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> 
                     .into(holder.imageView);
         }
 
-        // 2. DELETE LOGIC: Triggered by a long press
-        holder.itemView.setOnLongClickListener(v -> {
-            new AlertDialog.Builder(holder.itemView.getContext())
+        // 1. DELETE LOGIC: Now attached to the ImageView to avoid conflict
+        holder.imageView.setOnLongClickListener(v -> {
+            new AlertDialog.Builder(v.getContext())
                     .setTitle("Delete Item")
                     .setMessage("Do you want to remove this from your wardrobe?")
-                    .setPositiveButton("Delete", (dialog, which) -> deleteFromFirebase(imageString, holder.itemView))
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        // Pass 'position' to help update the UI after deletion
+                        deleteFromFirebase(imageString, v, position);
+                    })
                     .setNegativeButton("Cancel", null)
                     .show();
-            return true;
+            return true; // "true" prevents the regular Click from triggering
         });
 
+        // 2. AI CHAT LOGIC: Regular click
         holder.imageView.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(v.getContext(), ChatActivity.class);
-
-            // We "put" the Base64 string into the Intent to send it to the next screen
             intent.putExtra("image_data", imageString);
-
             v.getContext().startActivity(intent);
         });
     }
 
-    private void deleteFromFirebase(String imageContent, View view) {
+    private void deleteFromFirebase(String imageContent, View view, int position) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance(dbUrl)
                 .getReference("Users").child(userId).child(categoryPath);
 
-        // Find the specific item with this image data and remove it
+        // Find the specific item and remove it
         ref.orderByValue().equalTo(imageContent).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    data.getRef().removeValue();
+                if (snapshot.exists()) {
+                    for (DataSnapshot data : snapshot.getChildren()) {
+                        data.getRef().removeValue();
+                    }
+
+                    // Update the local list so the item disappears immediately
+                    if (position < imageUrls.size()) {
+                        imageUrls.remove(position);
+                        notifyItemRemoved(position);
+                        notifyItemRangeChanged(position, imageUrls.size());
+                    }
+
+                    Toast.makeText(view.getContext(), "Item removed", Toast.LENGTH_SHORT).show();
                 }
-                Toast.makeText(view.getContext(), "Item removed", Toast.LENGTH_SHORT).show();
             }
 
             @Override
