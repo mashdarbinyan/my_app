@@ -68,7 +68,7 @@ public class JacketActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
 
         jacketList = new ArrayList<>();
-        adapter = new DressAdapter(jacketList, "myJackets");
+        adapter = new DressAdapter(jacketList, "myJackets", false);
         recyclerView.setAdapter(adapter);
 
         loadJackets();

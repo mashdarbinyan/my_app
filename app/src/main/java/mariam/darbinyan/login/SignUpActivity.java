@@ -1,8 +1,11 @@
 package mariam.darbinyan.login;
 
 import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -28,14 +31,26 @@ public class SignUpActivity extends AppCompatActivity {
                 return;
             }
 
-
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            android.widget.Toast.makeText(this, "Success! User created.", android.widget.Toast.LENGTH_SHORT).show();
-                            finish();
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null) {
+                                // SEND VERIFICATION EMAIL
+                                user.sendEmailVerification()
+                                        .addOnCompleteListener(verifyTask -> {
+                                            if (verifyTask.isSuccessful()) {
+                                                Toast.makeText(this, "Verification email sent! Please check your inbox.", Toast.LENGTH_LONG).show();
+                                                // Log out so they can't enter until they verify
+                                                mAuth.signOut();
+                                                finish();
+                                            } else {
+                                                Toast.makeText(this, "Failed to send email: " + verifyTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            }
                         } else {
-                            android.widget.Toast.makeText(this, "Error: " + task.getException().getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
         });

@@ -93,7 +93,7 @@ public class DressActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
 
         dressList = new java.util.ArrayList<>();
-        adapter = new DressAdapter(dressList, "myDresses");
+        adapter = new DressAdapter(dressList, "myDresses", false);
         recyclerView.setAdapter(adapter);
 
 // Load the photos when the app starts

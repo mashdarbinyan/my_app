@@ -8,6 +8,16 @@
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
+    <ImageButton
+        android:id="@+id/btn_favorite"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/outline_family_home_24"
+        android:contentDescription="Add to favorites" />
+
     <ImageView
         android:id="@+id/imageDressItem"
         android:layout_width="match_parent"

@@ -84,7 +84,7 @@ public class PantsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
 
         pantsList = new ArrayList<>();
-        adapter = new DressAdapter(pantsList, "myPants");
+        adapter = new DressAdapter(pantsList, "myPants", false);
         recyclerView.setAdapter(adapter);
 
         loadPants();

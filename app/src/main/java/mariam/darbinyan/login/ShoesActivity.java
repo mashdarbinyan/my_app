@@ -73,7 +73,7 @@ public class ShoesActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
 
         shoesList = new ArrayList<>();
-        adapter = new DressAdapter(shoesList, "myShoes");
+        adapter = new DressAdapter(shoesList, "myShoes", false);
         recyclerView.setAdapter(adapter);
 
         loadShoes();
