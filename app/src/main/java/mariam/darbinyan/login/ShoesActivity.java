@@ -1,59 +1,62 @@
 package mariam.darbinyan.login;
 
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
+import android.view.View;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ShoesActivity extends AppCompatActivity {
 
-    private androidx.recyclerview.widget.RecyclerView recyclerView;
+    private RecyclerView recyclerView;
     private List<String> shoesList;
     private DressAdapter adapter;
     private String dbUrl = "https://mariam-sproject-default-rtdb.europe-west1.firebasedatabase.app/";
 
-    private void uploadImageToFirebase(Uri uri) {
-        try {
-            android.graphics.Bitmap bitmap = android.provider.MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-            // Same 250x250 size to keep the database fast
-            android.graphics.Bitmap scaledBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, 250, 250, true);
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            scaledBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 50, baos);
-            String imageEncoded = android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.DEFAULT);
-
-            saveUrlToDatabase(imageEncoded);
-        } catch (Exception e) {
-            Toast.makeText(this, "Upload failed", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void saveUrlToDatabase(String imageUrl) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        // --- PATH CHANGED TO myShoes ---
-        DatabaseReference dbRef = FirebaseDatabase.getInstance(dbUrl).getReference("Users")
-                .child(userId).child("myShoes");
-
-        dbRef.push().setValue(imageUrl).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Shoes added to your wardrobe!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private final ActivityResultLauncher<String> mGetContent = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
-            uri -> { if (uri != null) uploadImageToFirebase(uri); }
-    );
+            uri -> {
+                if (uri != null) {
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                        processAndUpload(bitmap);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Gallery failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+    private final ActivityResultLauncher<Void> mTakePicture = registerForActivityResult(
+            new ActivityResultContracts.TakePicturePreview(),
+            bitmap -> {
+                if (bitmap != null) {
+                    processAndUpload(bitmap);
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,38 +69,88 @@ public class ShoesActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("My Shoes");
         }
 
-        // Make sure this ID matches activity_shoes.xml
-        findViewById(R.id.fab_add_shoes).setOnClickListener(v -> mGetContent.launch("image/*"));
+        boolean isSelectMode = getIntent().getBooleanExtra("SELECT_MODE", false);
+        FloatingActionButton fab = findViewById(R.id.fab_add_shoes);
+
+        if (isSelectMode) {
+            fab.setVisibility(View.GONE);
+        }
+
+        fab.setOnClickListener(v -> {
+            String[] options = {"Take Photo", "Choose from Gallery"};
+            new AlertDialog.Builder(this)
+                    .setTitle("Add New Shoes")
+                    .setItems(options, (dialog, which) -> {
+                        if (which == 0) {
+                            mTakePicture.launch(null);
+                        } else {
+                            mGetContent.launch("image/*");
+                        }
+                    })
+                    .show();
+        });
 
         recyclerView = findViewById(R.id.recyclerViewShoes);
-        recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         shoesList = new ArrayList<>();
-        adapter = new DressAdapter(shoesList, "myShoes", false);
+        adapter = new DressAdapter(shoesList, "myShoes", isSelectMode);
         recyclerView.setAdapter(adapter);
 
         loadShoes();
     }
 
-    private void loadShoes() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    // UPDATED: Matrix scaling for perfect shoe proportions
+    private void processAndUpload(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
 
-        // --- PATH CHANGED TO myShoes ---
+        float maxSide = 600f;
+        float scale = Math.min(maxSide / width, maxSide / height);
+
+        Matrix matrix = new Matrix();
+        matrix.postScale(scale, scale);
+
+        Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos);
+
+        byte[] b = baos.toByteArray();
+        String imageEncoded = Base64.encodeToString(b, Base64.DEFAULT);
+
+        saveUrlToDatabase(imageEncoded);
+    }
+
+    private void saveUrlToDatabase(String imageUrl) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference dbRef = FirebaseDatabase.getInstance(dbUrl).getReference("Users")
                 .child(userId).child("myShoes");
 
-        dbRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+        dbRef.push().setValue(imageUrl).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Shoes added!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadShoes() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference dbRef = FirebaseDatabase.getInstance(dbUrl).getReference("Users")
+                .child(userId).child("myShoes");
+
+        dbRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 shoesList.clear();
-                for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                for (DataSnapshot data : snapshot.getChildren()) {
                     String url = data.getValue(String.class);
                     if (url != null) shoesList.add(url);
                 }
                 adapter.notifyDataSetChanged();
             }
             @Override
-            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 

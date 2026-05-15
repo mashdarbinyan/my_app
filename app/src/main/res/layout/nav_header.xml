@@ -8,11 +8,8 @@
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <ImageView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:paddingTop="8dp"
-        android:src="@android:drawable/ic_menu_gallery" />
+
+
 
     <TextView
         android:layout_width="match_parent"

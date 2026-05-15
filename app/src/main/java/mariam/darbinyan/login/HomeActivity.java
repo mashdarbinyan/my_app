@@ -1,10 +1,13 @@
 package mariam.darbinyan.login;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
+
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -14,12 +17,14 @@ import com.google.firebase.auth.FirebaseUser;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.core.view.GravityCompat;
 
 public class HomeActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     NavigationView navigationView;
     BottomNavigationView bottomNav;
-    CardView dressCard, pantsCard, shoesCard, jacketCard;
+    CardView dressCard, pantsCard, shoesCard, jacketCard, btnMyLooks;
     FirebaseAuth auth;
 
     @Override
@@ -30,14 +35,11 @@ public class HomeActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
 
-        // CHECK VERIFICATION STATUS
         if (currentUser != null) {
             currentUser.reload().addOnCompleteListener(task -> {
                 if (currentUser.isEmailVerified()) {
-                    // User is verified, set up the UI normally
                     setupUI(currentUser);
                 } else {
-                    // Not verified, kick them back to Login
                     auth.signOut();
                     Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_LONG).show();
                     startActivity(new Intent(HomeActivity.this, MainActivity.class));
@@ -45,9 +47,15 @@ public class HomeActivity extends AppCompatActivity {
                 }
             });
         } else {
-            // No user logged in at all
             startActivity(new Intent(HomeActivity.this, MainActivity.class));
             finish();
+        }
+
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        if (prefs.getBoolean("DarkMode", false)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
     }
 
@@ -58,30 +66,42 @@ public class HomeActivity extends AppCompatActivity {
         // Header Email Setup
         View headerView = navigationView.getHeaderView(0);
         TextView emailTextView = headerView.findViewById(R.id.user_email_header);
-        emailTextView.setText(user.getEmail());
+        if (emailTextView != null) {
+            emailTextView.setText(user.getEmail());
+        }
 
         dressCard = findViewById(R.id.DressCard);
         pantsCard = findViewById(R.id.PantsCard);
         shoesCard = findViewById(R.id.ShoesCard);
         jacketCard = findViewById(R.id.JacketCard);
+        btnMyLooks = findViewById(R.id.btnMyLooks);
 
-        // Click Listeners
+        // Category Click Listeners
         dressCard.setOnClickListener(v -> startActivity(new Intent(this, DressActivity.class)));
         pantsCard.setOnClickListener(v -> startActivity(new Intent(this, PantsActivity.class)));
         shoesCard.setOnClickListener(v -> startActivity(new Intent(this, ShoesActivity.class)));
         jacketCard.setOnClickListener(v -> startActivity(new Intent(this, JacketActivity.class)));
 
-        // Navigation Setup
+        if (btnMyLooks != null) {
+            btnMyLooks.setOnClickListener(v -> startActivity(new Intent(this, MyLooksActivity.class)));
+        }
+
+        // --- DRAWER NAVIGATION SETUP ---
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_logout) {
+
+            if (id == R.id.nav_home) {
+                // Already on home
+            } else if (id == R.id.nav_profile) {
+                // Opens your new Account/Profile interface
+                startActivity(new Intent(HomeActivity.this, AccountActivity.class));
+            } else if (id == R.id.nav_logout) {
                 auth.signOut();
                 startActivity(new Intent(HomeActivity.this, MainActivity.class));
                 finish();
-            } else if (id == R.id.bottom_add) {
-                showBottomSheet();
             }
-            drawerLayout.closeDrawers();
+
+            drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
@@ -92,45 +112,24 @@ public class HomeActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-// new
+        // --- BOTTOM NAVIGATION SETUP ---
         bottomNav = findViewById(R.id.bottom_navigation);
-
-        if (bottomNav != null) { // Prevents crash if ID is wrong
+        if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
-
                 if (id == R.id.bottom_favorites) {
                     startActivity(new Intent(HomeActivity.this, FavoritesActivity.class));
                     return true;
-                }
-                else if (id == R.id.bottom_add) {
-                    // This is your AI Chat button
+                } else if (id == R.id.bottom_add) {
                     startActivity(new Intent(HomeActivity.this, ChatActivity.class));
                     return true;
-                }
-                else if (id == R.id.bottom_settings) {
-                    Toast.makeText(this, "Settings coming soon!", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.bottom_settings) {
+                    // Opens your new Settings interface
+                    startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
                     return true;
                 }
                 return false;
             });
-        } else {
-            android.util.Log.e("DEBUG_MYLOOK", "Bottom Navigation View is NULL. Check activity_home.xml IDs!");
         }
-    }
-
-    private void showBottomSheet() {
-        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
-                new com.google.android.material.bottomsheet.BottomSheetDialog(this);
-        View view = getLayoutInflater().inflate(R.layout.bottom_sheet_layout, null);
-        android.widget.Button btnStartChat = view.findViewById(R.id.btn_start_chat);
-
-        btnStartChat.setOnClickListener(v -> {
-            bottomSheet.dismiss();
-            startActivity(new Intent(HomeActivity.this, ChatActivity.class));
-        });
-
-        bottomSheet.setContentView(view);
-        bottomSheet.show();
     }
 }

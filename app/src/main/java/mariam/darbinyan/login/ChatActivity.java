@@ -12,6 +12,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import mariam.darbinyan.login.BuildConfig;
+import androidx.core.content.ContextCompat;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -82,7 +83,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onFailure(Throwable t) {
                 runOnUiThread(() -> chatResponse.setText("AI Error: " + t.getMessage()));
             }
-        }, this.getMainExecutor());
+        }, ContextCompat.getMainExecutor(this));
     }
 
     private void askAI(String text) {
@@ -101,6 +102,6 @@ public class ChatActivity extends AppCompatActivity {
             public void onFailure(Throwable t) {
                 runOnUiThread(() -> chatResponse.setText("Error: " + t.getMessage()));
             }
-        }, this.getMainExecutor());
+        }, ContextCompat.getMainExecutor(this));
     }
 }

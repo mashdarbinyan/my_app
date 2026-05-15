@@ -1,72 +1,60 @@
 package mariam.darbinyan.login;
 
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DressActivity extends AppCompatActivity {
 
-    private androidx.recyclerview.widget.RecyclerView recyclerView;
-    private java.util.List<String> dressList;
+    private RecyclerView recyclerView;
+    private List<String> dressList;
     private DressAdapter adapter;
+    private String dbUrl = "https://mariam-sproject-default-rtdb.europe-west1.firebasedatabase.app/";
 
-    private void uploadImageToFirebase(Uri uri) {
-        try {
-            android.graphics.Bitmap bitmap = android.provider.MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-
-            // 1. Shrink it more (250x250 is plenty for a grid view)
-            android.graphics.Bitmap scaledBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, 250, 250, true);
-
-            // 2. Compress it more (50% quality)
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            scaledBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 50, baos);
-
-            byte[] b = baos.toByteArray();
-            String imageEncoded = android.util.Base64.encodeToString(b, android.util.Base64.DEFAULT);
-
-            // 3. Save to Database
-            String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
-            saveUrlToDatabase(userId, imageEncoded);
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Process failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-    private void saveUrlToDatabase(String userId, String imageUrl) {
-        String dbUrl = "https://mariam-sproject-default-rtdb.europe-west1.firebasedatabase.app/";
-        // 5. Save the URL under the user's specific folder in the database
-        DatabaseReference dbRef =
-                FirebaseDatabase.getInstance(dbUrl).getReference("Users")
-                        .child(userId)
-                        .child("myDresses");
-
-        String dressId = dbRef.push().getKey(); // Generates a unique ID for this specific dress
-        dbRef.child(dressId).setValue(imageUrl).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Dress added to your wardrobe!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    // This launcher handles the result of picking an image
     private final ActivityResultLauncher<String> mGetContent = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
-                    uploadImageToFirebase(uri);
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                        processAndUpload(bitmap);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Gallery failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+    private final ActivityResultLauncher<Void> mTakePicture = registerForActivityResult(
+            new ActivityResultContracts.TakePicturePreview(),
+            bitmap -> {
+                if (bitmap != null) {
+                    processAndUpload(bitmap);
                 }
             });
 
@@ -78,43 +66,92 @@ public class DressActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("My Dresses");
         }
-        // 2. Initialize the Add Button
-        com.google.android.material.floatingactionbutton.FloatingActionButton fab =
-                findViewById(R.id.fab_add_dress);
 
-        findViewById(R.id.fab_add_dress).setOnClickListener(v -> {
-            // This line opens the phone's gallery
-            mGetContent.launch("image/*");
+        boolean isSelectMode = getIntent().getBooleanExtra("SELECT_MODE", false);
+        FloatingActionButton fab = findViewById(R.id.fab_add_dress);
+
+        if (isSelectMode) {
+            fab.setVisibility(View.GONE);
+        }
+
+        fab.setOnClickListener(v -> {
+            String[] options = {"Take Photo", "Choose from Gallery"};
+            new AlertDialog.Builder(this)
+                    .setTitle("Add New Dress")
+                    .setItems(options, (dialog, which) -> {
+                        if (which == 0) {
+                            mTakePicture.launch(null);
+                        } else {
+                            mGetContent.launch("image/*");
+                        }
+                    })
+                    .show();
         });
 
         recyclerView = findViewById(R.id.recyclerViewDresses);
-// This makes it a 2-column grid
-        recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        dressList = new java.util.ArrayList<>();
-        adapter = new DressAdapter(dressList, "myDresses", false);
+        dressList = new ArrayList<>();
+        adapter = new DressAdapter(dressList, "myDresses", isSelectMode);
         recyclerView.setAdapter(adapter);
 
-// Load the photos when the app starts
         loadDresses();
     }
+
+    // UPDATED: Prevents stretching by using a Matrix for proportional scaling
+    private void processAndUpload(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        float maxSide = 600f;
+        float scale = Math.min(maxSide / width, maxSide / height);
+
+        Matrix matrix = new Matrix();
+        matrix.postScale(scale, scale);
+
+        // This creates a new bitmap that is smaller but the EXACT same shape
+        Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos); // Higher quality for "solid" looks
+
+        byte[] b = baos.toByteArray();
+        String imageEncoded = Base64.encodeToString(b, Base64.DEFAULT);
+
+        saveToDatabase(imageEncoded);
+    }
+
+
+    private void saveToDatabase(String imageUrl) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference dbRef = FirebaseDatabase.getInstance(dbUrl)
+                .getReference("Users")
+                .child(userId)
+                .child("myDresses");
+
+        String dressId = dbRef.push().getKey();
+        if (dressId != null) {
+            dbRef.child(dressId).setValue(imageUrl).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Toast.makeText(this, "Dress added!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
     private void loadDresses() {
-        String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference dbRef = FirebaseDatabase.getInstance(dbUrl)
+                .getReference("Users")
+                .child(userId).child("myDresses");
 
-        // --- FIX IS HERE: Add your Belgium URL ---
-        String dbUrl = "https://mariam-sproject-default-rtdb.europe-west1.firebasedatabase.app/";
-
-        com.google.firebase.database.DatabaseReference dbRef =
-                com.google.firebase.database.FirebaseDatabase.getInstance(dbUrl) // Use the URL!
-                        .getReference("Users")
-                        .child(userId).child("myDresses");
-
-        dbRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+        dbRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 dressList.clear();
-                for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                for (DataSnapshot data : snapshot.getChildren()) {
                     String url = data.getValue(String.class);
                     if (url != null) {
                         dressList.add(url);
@@ -124,14 +161,14 @@ public class DressActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // Go back to HomeActivity
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);

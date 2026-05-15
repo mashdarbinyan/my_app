@@ -20,7 +20,7 @@ public class FavoritesActivity extends androidx.appcompat.app.AppCompatActivity 
         recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
 
         List<String> favoriteImages = new java.util.ArrayList<>();
-        DressAdapter adapter = new DressAdapter(favoriteImages, "favorites", true);
+        DressAdapter adapter = new DressAdapter(favoriteImages, "favorites", false);
         recyclerView.setAdapter(adapter);
 
         // FIX: Check if user exists before getting UID
@@ -33,7 +33,7 @@ public class FavoritesActivity extends androidx.appcompat.app.AppCompatActivity 
 
             com.google.firebase.database.DatabaseReference favRef =
                     com.google.firebase.database.FirebaseDatabase.getInstance(dbUrl)
-                            .getReference("users")
+                            .getReference("Users")
                             .child(userId)
                             .child("favorites");
 

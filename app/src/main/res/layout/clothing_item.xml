@@ -15,8 +15,9 @@
         <ImageView
             android:id="@+id/imageDressItem"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:scaleType="fitCenter" />
+            android:layout_height="250dp"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"/>
 
         <ImageButton
             android:id="@+id/btn_favorite"

@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +20,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Login">
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AccountActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LookDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreateLookActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MyLooksActivity"
+            android:exported="false" />
         <activity
             android:name=".JacketActivity"
             android:exported="false" />
@@ -45,11 +65,9 @@
         <activity
             android:name=".ChatActivity"
             android:exported="false" />
-
-        <activity android:name=".FavoritesActivity"
+        <activity
+            android:name=".FavoritesActivity"
             android:exported="false" />
-
-
     </application>
 
 </manifest>
