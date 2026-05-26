@@ -82,6 +82,15 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btn_test_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test User"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="16dp"/>
+
     
     <TextView
         android:layout_width="wrap_content"
@@ -93,6 +102,8 @@
         android:id="@+id/signupText"
         android:textColor="@color/purpule"
         android:layout_marginBottom="20dp"/>
+
+
 
 
 </LinearLayout>

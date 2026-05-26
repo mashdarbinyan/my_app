@@ -8,23 +8,24 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import java.io.File;
 import java.util.HashMap;
 
 public class CreateLookActivity extends AppCompatActivity {
 
     private EditText etLookName;
-    // Updated to match your new 4-slot layout IDs
     private ImageView imgSlotDress, imgSlotJacket, imgSlotPants, imgSlotShoes;
     private Button btnSaveLook;
 
-    // Updated string names to match your request
-    private String selectedDressB64 = "";
-    private String selectedJacketB64 = "";
-    private String selectedPantsB64 = "";
-    private String selectedShoesB64 = "";
+    // These now store URLs or file names
+    private String selectedDress = "";
+    private String selectedJacket = "";
+    private String selectedPants = "";
+    private String selectedShoes = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,16 +33,12 @@ public class CreateLookActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_look);
 
         etLookName = findViewById(R.id.etLookName);
-
-        // Initialize the 4 slots
         imgSlotDress = findViewById(R.id.imgSlotDress);
         imgSlotJacket = findViewById(R.id.imgSlotJacket);
         imgSlotPants = findViewById(R.id.imgSlotPants);
         imgSlotShoes = findViewById(R.id.imgSlotShoes);
-
         btnSaveLook = findViewById(R.id.btnSaveLook);
 
-        // Click listeners using unique RequestCodes
         imgSlotDress.setOnClickListener(v -> openSelection(DressActivity.class, 101));
         imgSlotJacket.setOnClickListener(v -> openSelection(JacketActivity.class, 104));
         imgSlotPants.setOnClickListener(v -> openSelection(PantsActivity.class, 102));
@@ -50,7 +47,6 @@ public class CreateLookActivity extends AppCompatActivity {
         btnSaveLook.setOnClickListener(v -> saveLookToFirebase());
     }
 
-    // Pass the actual Activity class to make it cleaner
     private void openSelection(Class<?> activityClass, int requestCode) {
         Intent intent = new Intent(this, activityClass);
         intent.putExtra("SELECT_MODE", true);
@@ -63,30 +59,27 @@ public class CreateLookActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK && data != null) {
             String pickedImage = data.getStringExtra("PICKED_IMAGE");
+            ImageView targetSlot = null;
 
-            // Convert Base64 to Bitmap to show in the UI
-            byte[] decodedString = android.util.Base64.decode(pickedImage, android.util.Base64.DEFAULT);
-            android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            if (requestCode == 101) { targetSlot = imgSlotDress; selectedDress = pickedImage; }
+            else if (requestCode == 102) { targetSlot = imgSlotPants; selectedPants = pickedImage; }
+            else if (requestCode == 103) { targetSlot = imgSlotShoes; selectedShoes = pickedImage; }
+            else if (requestCode == 104) { targetSlot = imgSlotJacket; selectedJacket = pickedImage; }
 
-            if (requestCode == 101) {
-                selectedDressB64 = pickedImage;
-                imgSlotDress.setImageBitmap(bitmap);
-            } else if (requestCode == 102) {
-                selectedPantsB64 = pickedImage;
-                imgSlotPants.setImageBitmap(bitmap);
-            } else if (requestCode == 103) {
-                selectedShoesB64 = pickedImage;
-                imgSlotShoes.setImageBitmap(bitmap);
-            } else if (requestCode == 104) {
-                selectedJacketB64 = pickedImage;
-                imgSlotJacket.setImageBitmap(bitmap);
+            if (targetSlot != null) {
+                // Use Glide to load based on whether it's a URL or a file name
+                if (pickedImage.startsWith("http")) {
+                    Glide.with(this).load(pickedImage).into(targetSlot);
+                } else {
+                    File file = new File(getFilesDir(), pickedImage);
+                    Glide.with(this).load(file).into(targetSlot);
+                }
             }
         }
     }
 
     private void saveLookToFirebase() {
         String name = etLookName.getText().toString().trim();
-
         if (name.isEmpty()) {
             Toast.makeText(this, "Please give your look a name!", Toast.LENGTH_SHORT).show();
             return;
@@ -100,16 +93,14 @@ public class CreateLookActivity extends AppCompatActivity {
 
         HashMap<String, String> lookData = new HashMap<>();
         lookData.put("lookName", name);
-        lookData.put("dress", selectedDressB64);
-        lookData.put("jacket", selectedJacketB64);
-        lookData.put("pants", selectedPantsB64);
-        lookData.put("shoes", selectedShoesB64);
+        lookData.put("dress", selectedDress);
+        lookData.put("jacket", selectedJacket);
+        lookData.put("pants", selectedPants);
+        lookData.put("shoes", selectedShoes);
 
         lookRef.child(lookId).setValue(lookData).addOnSuccessListener(aVoid -> {
             Toast.makeText(this, "Outfit Saved! ✨", Toast.LENGTH_LONG).show();
             finish();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 }

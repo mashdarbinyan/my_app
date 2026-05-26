@@ -8,13 +8,7 @@ plugins {
 
 android {
     namespace = "mariam.darbinyan.login"
-    compileSdk {
-        version = release(36)
-
-        buildFeatures {
-            buildConfig = true
-        }
-    }
+    compileSdk = 36 // Cleaned up syntax error here
 
     defaultConfig {
         applicationId = "mariam.darbinyan.login"
@@ -24,6 +18,25 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // NATIVE KOTLIN SOLUTION: Reads the file line-by-line without any special packages
+        var discoveredKey = ""
+        val propertiesFile = rootProject.file("local.properties")
+        if (propertiesFile.exists()) {
+            propertiesFile.readLines().forEach { line ->
+                if (line.startsWith("picsart.api.key=")) {
+                    // Extract everything after the '=' sign and clean up quotes/spaces
+                    discoveredKey = line.substringAfter("=").trim().replace("\"", "")
+                }
+            }
+        }
+
+        // Securely inject it as a standard Java string field
+        buildConfigField("String", "PICSART_API_KEY", "\"$discoveredKey\"")
+    }
+
+    buildFeatures {
+        buildConfig = true // Cleaned up syntax to use '='
     }
 
     buildTypes {
@@ -62,6 +75,7 @@ dependencies {
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation("com.google.guava:guava:33.0.0-android")
     implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
 
 
