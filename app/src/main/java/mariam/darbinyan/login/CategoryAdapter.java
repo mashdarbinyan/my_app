@@ -12,15 +12,21 @@ import java.util.List;
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
 
     private final List<CategoryModel> categoryList;
+    private final OnCategoryLongClickListener listener;
 
-    public CategoryAdapter(List<CategoryModel> categoryList) {
+    // Interface to communicate with HomeActivity
+    public interface OnCategoryLongClickListener {
+        void onCategoryLongClick(CategoryModel category);
+    }
+
+    public CategoryAdapter(List<CategoryModel> categoryList, OnCategoryLongClickListener listener) {
         this.categoryList = categoryList;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Reusing a simple default Android list layout item to display the text smoothly
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(android.R.layout.simple_list_item_1, parent, false);
         return new ViewHolder(view);
@@ -30,19 +36,25 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CategoryModel category = categoryList.get(position);
         holder.textView.setText(category.getName());
-
-        // Custom padding & styling to make the simple item look like a clean clickable row button
         holder.textView.setPadding(32, 32, 32, 32);
         holder.textView.setTextSize(18);
-
         holder.textView.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.purpule));
 
-        // When clicked, open the exact custom activity grid workspace for this specific category!
+        // Click to open
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CustomCategoryActivity.class);
             intent.putExtra("CATEGORY_NAME", category.getName());
             intent.putExtra("CATEGORY_KEY", category.getKey());
             v.getContext().startActivity(intent);
+        });
+
+        // Long-click to trigger delete in HomeActivity
+        holder.itemView.setOnLongClickListener(v -> {
+            if (listener != null) {
+                listener.onCategoryLongClick(category);
+                return true;
+            }
+            return false;
         });
     }
 

@@ -51,8 +51,14 @@ public class MyLooksActivity extends AppCompatActivity {
             public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
                 lookList.clear();
                 for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                    // Cast the value to a mutable map
                     java.util.Map<String, String> look = (java.util.Map<String, String>) data.getValue();
-                    lookList.add(look);
+
+                    // CRITICAL: Manually add the key (lookId) into the map
+                    if (look != null) {
+                        look.put("lookId", data.getKey());
+                        lookList.add(look);
+                    }
                 }
                 adapter.notifyDataSetChanged();
             }

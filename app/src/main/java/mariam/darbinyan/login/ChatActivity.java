@@ -29,45 +29,41 @@ public class ChatActivity extends AppCompatActivity {
         userInput = findViewById(R.id.userInput);
         Button sendBtn = findViewById(R.id.sendBtn);
 
-        // Initialize Gemini
-        // Use the specific model ID and define the model version explicitly
-        GenerativeModel gm = new GenerativeModel(
-                "gemini-2.5-flash",
-                BuildConfig.GEMINI_API_KEY
-        );
+        GenerativeModel gm = new GenerativeModel("gemini-2.5-flash", BuildConfig.GEMINI_API_KEY);
         model = GenerativeModelFutures.from(gm);
 
-        sendBtn.setOnClickListener(v -> {
-            String query = userInput.getText().toString();
-            if (!query.isEmpty()) {
-                askAI(query);
-            }
-        });
+        // 1. Prepare the bitmap variable
+        final android.graphics.Bitmap[] capturedBitmap = {null};
         String base64Image = getIntent().getStringExtra("image_data");
 
         if (base64Image != null) {
-            // 1. Convert the string back into a Bitmap (the AI needs the bitmap)
             byte[] decodedString = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
-            android.graphics.Bitmap capturedBitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
-            // 2. Set up the Send button to use the image version of the AI
-            sendBtn.setOnClickListener(v -> {
-                String query = userInput.getText().toString();
-                if (!query.isEmpty()) {
-                    askAIWithImage(query, capturedBitmap);
-                }
-            });
+            capturedBitmap[0] = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         }
+
+        // 2. Set the listener ONCE
+        sendBtn.setOnClickListener(v -> {
+            String query = userInput.getText().toString();
+            if (query.isEmpty()) return;
+
+            if (capturedBitmap[0] != null) {
+                askAIWithImage(query, capturedBitmap[0]);
+            } else {
+                askAI(query);
+            }
+        });
     }
 
     private void askAIWithImage(String text, android.graphics.Bitmap userImage) {
-        chatResponse.setText("The AI is looking at your outfit...");
+        chatResponse.setText("Thinking...");
 
-        // Gemini "Content" can hold both Text and Bitmaps
+        // Add the "Stylist" persona to the text
+        String stylistPrompt = "Act as a professional fashion stylist. Give me a very short, chic, and actionable answer: " + text;
+
         com.google.ai.client.generativeai.type.Content content =
                 new com.google.ai.client.generativeai.type.Content.Builder()
                         .addImage(userImage)
-                        .addText(text)
+                        .addText(stylistPrompt)
                         .build();
 
         com.google.common.util.concurrent.ListenableFuture<com.google.ai.client.generativeai.type.GenerateContentResponse> response =
@@ -89,7 +85,10 @@ public class ChatActivity extends AppCompatActivity {
     private void askAI(String text) {
         chatResponse.setText("Thinking...");
 
-        Content content = new Content.Builder().addText(text).build();
+        // Add the "Stylist" persona here too
+        String stylistPrompt = "Act as a professional fashion stylist. Give me a very short, chic, and actionable answer: " + text;
+
+        Content content = new Content.Builder().addText(stylistPrompt).build();
         ListenableFuture<com.google.ai.client.generativeai.type.GenerateContentResponse> response = model.generateContent(content);
 
         Futures.addCallback(response, new FutureCallback<com.google.ai.client.generativeai.type.GenerateContentResponse>() {

@@ -39,11 +39,14 @@ public class LookAdapter extends RecyclerView.Adapter<LookAdapter.ViewHolder> {
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), LookDetailActivity.class);
+            // Passing the ID and Extra Items now
+            intent.putExtra("lookId", look.get("lookId"));
             intent.putExtra("lookName", look.get("lookName"));
             intent.putExtra("dress", look.get("dress"));
             intent.putExtra("jacket", look.get("jacket"));
             intent.putExtra("pants", look.get("pants"));
             intent.putExtra("shoes", look.get("shoes"));
+            intent.putExtra("extraItems", look.get("extraItems"));
             v.getContext().startActivity(intent);
         });
     }
@@ -56,7 +59,11 @@ public class LookAdapter extends RecyclerView.Adapter<LookAdapter.ViewHolder> {
                 Glide.with(context).load(content).into(imageView);
             } else {
                 File file = new File(context.getFilesDir(), content);
-                Glide.with(context).load(file).into(imageView);
+                if (file.exists()) {
+                    Glide.with(context).load(file).into(imageView);
+                } else {
+                    imageView.setVisibility(View.GONE);
+                }
             }
         } else {
             imageView.setVisibility(View.GONE);
