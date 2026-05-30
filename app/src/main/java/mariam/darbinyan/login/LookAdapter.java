@@ -39,7 +39,7 @@ public class LookAdapter extends RecyclerView.Adapter<LookAdapter.ViewHolder> {
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), LookDetailActivity.class);
-            // Passing the ID and Extra Items now
+
             intent.putExtra("lookId", look.get("lookId"));
             intent.putExtra("lookName", look.get("lookName"));
             intent.putExtra("dress", look.get("dress"));

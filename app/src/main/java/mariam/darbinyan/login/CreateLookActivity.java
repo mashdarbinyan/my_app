@@ -44,7 +44,7 @@ public class CreateLookActivity extends AppCompatActivity {
         imgSlotShoes = findViewById(R.id.imgSlotShoes);
         btnSaveLook = findViewById(R.id.btnSaveLook);
         dynamicCategoryContainer = findViewById(R.id.dynamicCategoryContainer);
-        addedItemsContainer = findViewById(R.id.addedItemsContainer); // Ensure this ID is in your XML
+        addedItemsContainer = findViewById(R.id.addedItemsContainer);
 
         imgSlotDress.setOnClickListener(v -> openSelection(DressActivity.class, 101));
         imgSlotJacket.setOnClickListener(v -> openSelection(JacketActivity.class, 104));
@@ -93,7 +93,7 @@ public class CreateLookActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && data != null) {
             String pickedImage = data.getStringExtra("PICKED_IMAGE");
             if (requestCode == 200) {
-                // Add to extra items list and display in the new container
+
                 extraItemsList.add(pickedImage);
                 ImageView newItem = new ImageView(this);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(120, 120);

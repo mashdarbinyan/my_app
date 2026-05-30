@@ -25,10 +25,10 @@ public class MyLooksActivity extends AppCompatActivity {
         rvMyLooks = findViewById(R.id.rvMyLooks);
         fabNewLook = findViewById(R.id.fabNewLook);
 
-        // Setup the list (we'll add the adapter later)
+
         rvMyLooks.setLayoutManager(new LinearLayoutManager(this));
 
-        // When you click +, go to the Creation screen
+
         fabNewLook.setOnClickListener(v -> {
             Intent intent = new Intent(MyLooksActivity.this, CreateLookActivity.class);
             startActivity(intent);
@@ -51,10 +51,10 @@ public class MyLooksActivity extends AppCompatActivity {
             public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
                 lookList.clear();
                 for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
-                    // Cast the value to a mutable map
+
                     java.util.Map<String, String> look = (java.util.Map<String, String>) data.getValue();
 
-                    // CRITICAL: Manually add the key (lookId) into the map
+
                     if (look != null) {
                         look.put("lookId", data.getKey());
                         lookList.add(look);

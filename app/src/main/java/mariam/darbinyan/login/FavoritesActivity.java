@@ -16,14 +16,14 @@ public class FavoritesActivity extends androidx.appcompat.app.AppCompatActivity 
         setContentView(R.layout.activity_favorites);
 
         RecyclerView recyclerView = findViewById(R.id.favoritesRecyclerView);
-        // Use 2 columns for a nice wardrobe grid look
+
         recyclerView.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(this, 2));
 
         List<String> favoriteImages = new java.util.ArrayList<>();
         DressAdapter adapter = new DressAdapter(favoriteImages, "favorites", false);
         recyclerView.setAdapter(adapter);
 
-        // FIX: Check if user exists before getting UID
+
         com.google.firebase.auth.FirebaseUser user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
 
         if (user != null) {

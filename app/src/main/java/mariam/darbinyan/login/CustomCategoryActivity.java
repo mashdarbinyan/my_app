@@ -52,7 +52,7 @@ public class CustomCategoryActivity extends AppCompatActivity {
     private String categoryKey;
     private String categoryDisplayName;
 
-    // 1. Launcher for Gallery
+
     private final ActivityResultLauncher<String> mGetContent = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
@@ -66,7 +66,7 @@ public class CustomCategoryActivity extends AppCompatActivity {
                 }
             });
 
-    // 2. Launcher for Camera
+
     private final ActivityResultLauncher<Void> mTakePicture = registerForActivityResult(
             new ActivityResultContracts.TakePicturePreview(),
             bitmap -> {
@@ -80,26 +80,26 @@ public class CustomCategoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
 
-        // 1. Point cleanly to your dedicated custom XML file!
+
         setContentView(R.layout.activity_custom_category);
 
         categoryDisplayName = getIntent().getStringExtra("CATEGORY_NAME");
         categoryKey = getIntent().getStringExtra("CATEGORY_KEY");
         if (categoryDisplayName == null) categoryDisplayName = "My Category";
 
-        // 2. Dynamically set the big title text on the page to match the user's chosen name
+
         android.widget.TextView txtTitle = findViewById(R.id.txtCustomCategoryTitle);
         if (txtTitle != null) {
             txtTitle.setText(categoryDisplayName);
         }
 
-        // Set up Toolbar explicitly to handle dynamic titles correctly
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
         }
 
-        // Set up Action Bar title mapping securely
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(categoryDisplayName);
@@ -126,7 +126,7 @@ public class CustomCategoryActivity extends AppCompatActivity {
                     .show();
         });
 
-        // 3. Bind to the isolated custom recycler grid container
+
         recyclerView = findViewById(R.id.recyclerViewCustomItems); // New RecyclerView ID
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
@@ -169,11 +169,11 @@ public class CustomCategoryActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     String jsonString = response.body().string(); // Get the JSON text
                     try {
-                        // Parse the JSON to get the "url" field
+
                         org.json.JSONObject json = new org.json.JSONObject(jsonString);
                         String imageUrl = json.getJSONObject("data").getString("url");
 
-                        // Save this URL to the database
+
                         runOnUiThread(() -> saveUrlToDatabase(imageUrl));
                     } catch (Exception e) {
                         android.util.Log.e("FILE_DEBUG", "JSON Parsing Error: " + e.getMessage());

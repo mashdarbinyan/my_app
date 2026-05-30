@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
     EditText username;
     EditText password;
     Button loginButton;
-    Button testModeButton; // Added variable for the Test User button
+    Button testModeButton;
 
     private FirebaseAuth mAuth;
 
@@ -30,11 +30,11 @@ public class MainActivity extends AppCompatActivity {
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         loginButton = findViewById(R.id.loginButton);
-        testModeButton = findViewById(R.id.btn_test_mode); // Connected to your XML ID
+        testModeButton = findViewById(R.id.btn_test_mode);
 
         mAuth = FirebaseAuth.getInstance();
 
-        // 1. CLICK LISTENER FOR THE DEDICATED "TEST USER" BUTTON
+
         if (testModeButton != null) {
             testModeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
                     mAuth.signInWithEmailAndPassword("innovationcampus26@gmail.com", "Samsung2026")
                             .addOnCompleteListener(task -> {
                                 if (task.isSuccessful()) {
-                                    // BYPASS VERIFICATION: Go straight to HomeActivity for the test user
+
                                     Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                                     intent.putExtra("USER_NAME", "innovationcampus26@gmail.com");
                                     startActivity(intent);
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 2. STANDARD CLICK LISTENER FOR NORMAL LOGINS
+
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,16 +74,16 @@ public class MainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 FirebaseUser user = mAuth.getCurrentUser();
 
-                                // FORCE CLEARANCE CHECK: If it's your campus test account, skip verification filters entirely
+
                                 if (user != null && ("innovationcampus26@gmail.com".equalsIgnoreCase(email) || user.isEmailVerified())) {
                                     Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                                     intent.putExtra("USER_NAME", email);
                                     startActivity(intent);
                                     finish();
                                 } else {
-                                    // Fallback if a standard user tries logging in without completing their registration email link
+
                                     Toast.makeText(MainActivity.this, "Please verify your email before logging in.", Toast.LENGTH_LONG).show();
-                                    mAuth.signOut(); // Log them back out to prevent unverified lingering state
+                                    mAuth.signOut();
                                 }
                             } else {
                                 Toast.makeText(MainActivity.this, "Authentication Failed: " +

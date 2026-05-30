@@ -30,7 +30,7 @@ public class LookDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_look_detail);
 
-        // Retrieve data
+
         lookId = getIntent().getStringExtra("lookId");
         lookName = getIntent().getStringExtra("lookName");
         String extraItems = getIntent().getStringExtra("extraItems");
@@ -46,18 +46,18 @@ public class LookDetailActivity extends AppCompatActivity {
 
         tvName.setText(lookName);
 
-        // Display Base Slots
+
         displayImage(getIntent().getStringExtra("dress"), imgDress);
         displayImage(getIntent().getStringExtra("jacket"), imgJacket);
         displayImage(getIntent().getStringExtra("pants"), imgPants);
         displayImage(getIntent().getStringExtra("shoes"), imgShoes);
 
-        // Display Extra Items
+
         if (extraItems != null && !extraItems.isEmpty() && !extraItems.equals("[]")) {
             displayExtraItems(extraItems);
         }
 
-        // Listeners
+
         setupRemoveListener(imgDress, "dress");
         setupRemoveListener(imgJacket, "jacket");
         setupRemoveListener(imgPants, "pants");

@@ -51,7 +51,7 @@ public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> 
 
         holder.btn_favorite.setVisibility(isSelectMode ? View.GONE : View.VISIBLE);
 
-        // --- Hybrid Loading: URL or Local File ---
+
         if (imageString.startsWith("http")) {
             Glide.with(context).load(imageString).placeholder(android.R.drawable.ic_menu_gallery).into(holder.imageView);
         } else {
@@ -63,7 +63,7 @@ public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> 
             }
         }
 
-        // --- Favorites System ---
+
         if (!isSelectMode) {
             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             DatabaseReference favRef = FirebaseDatabase.getInstance(dbUrl).getReference("Users").child(userId).child("favorites");
@@ -95,7 +95,7 @@ public class DressAdapter extends RecyclerView.Adapter<DressAdapter.ViewHolder> 
             });
         }
 
-        // --- Click Listeners ---
+
         holder.imageView.setOnLongClickListener(v -> {
             if (!isSelectMode) {
                 new AlertDialog.Builder(context)

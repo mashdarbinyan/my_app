@@ -26,13 +26,13 @@ public class CustomSelectionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dress); // Reuse the layout you have for other items
+        setContentView(R.layout.activity_dress);
 
         categoryKey = getIntent().getStringExtra("CATEGORY_KEY");
-        recyclerView = findViewById(R.id.recyclerViewDresses); // Ensure this ID matches your layout
+        recyclerView = findViewById(R.id.recyclerViewDresses);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
 
-        // Pass the dynamic categoryKey instead of a static "myDresses"
+
         adapter = new DressAdapter(imageList, categoryKey, true);
         recyclerView.setAdapter(adapter);
 

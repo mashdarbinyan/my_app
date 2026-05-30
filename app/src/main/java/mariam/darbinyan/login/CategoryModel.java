@@ -4,7 +4,7 @@ public class CategoryModel {
     private String key;
     private String name;
 
-    // Required empty constructor for Firebase
+
     public CategoryModel() {}
 
     public CategoryModel(String key, String name) {

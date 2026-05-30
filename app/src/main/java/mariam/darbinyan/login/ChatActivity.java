@@ -32,7 +32,7 @@ public class ChatActivity extends AppCompatActivity {
         GenerativeModel gm = new GenerativeModel("gemini-2.5-flash", BuildConfig.GEMINI_API_KEY);
         model = GenerativeModelFutures.from(gm);
 
-        // 1. Prepare the bitmap variable
+
         final android.graphics.Bitmap[] capturedBitmap = {null};
         String base64Image = getIntent().getStringExtra("image_data");
 
@@ -41,7 +41,7 @@ public class ChatActivity extends AppCompatActivity {
             capturedBitmap[0] = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         }
 
-        // 2. Set the listener ONCE
+
         sendBtn.setOnClickListener(v -> {
             String query = userInput.getText().toString();
             if (query.isEmpty()) return;
@@ -57,7 +57,7 @@ public class ChatActivity extends AppCompatActivity {
     private void askAIWithImage(String text, android.graphics.Bitmap userImage) {
         chatResponse.setText("Thinking...");
 
-        // Add the "Stylist" persona to the text
+
         String stylistPrompt = "Act as a professional fashion stylist. Give me a very short, chic, and actionable answer: " + text;
 
         com.google.ai.client.generativeai.type.Content content =
@@ -85,7 +85,7 @@ public class ChatActivity extends AppCompatActivity {
     private void askAI(String text) {
         chatResponse.setText("Thinking...");
 
-        // Add the "Stylist" persona here too
+
         String stylistPrompt = "Act as a professional fashion stylist. Give me a very short, chic, and actionable answer: " + text;
 
         Content content = new Content.Builder().addText(stylistPrompt).build();

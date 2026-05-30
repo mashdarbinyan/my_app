@@ -14,7 +14,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     private final List<CategoryModel> categoryList;
     private final OnCategoryLongClickListener listener;
 
-    // Interface to communicate with HomeActivity
+
     public interface OnCategoryLongClickListener {
         void onCategoryLongClick(CategoryModel category);
     }
@@ -40,7 +40,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         holder.textView.setTextSize(18);
         holder.textView.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.purpule));
 
-        // Click to open
+
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CustomCategoryActivity.class);
             intent.putExtra("CATEGORY_NAME", category.getName());
@@ -48,7 +48,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             v.getContext().startActivity(intent);
         });
 
-        // Long-click to trigger delete in HomeActivity
+
         holder.itemView.setOnLongClickListener(v -> {
             if (listener != null) {
                 listener.onCategoryLongClick(category);

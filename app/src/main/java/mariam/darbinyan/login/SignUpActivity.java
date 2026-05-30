@@ -36,12 +36,12 @@ public class SignUpActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             if (user != null) {
-                                // SEND VERIFICATION EMAIL
+
                                 user.sendEmailVerification()
                                         .addOnCompleteListener(verifyTask -> {
                                             if (verifyTask.isSuccessful()) {
                                                 Toast.makeText(this, "Verification email sent! Please check your inbox.", Toast.LENGTH_LONG).show();
-                                                // Log out so they can't enter until they verify
+
                                                 mAuth.signOut();
                                                 finish();
                                             } else {

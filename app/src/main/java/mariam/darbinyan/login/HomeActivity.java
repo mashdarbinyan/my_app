@@ -100,7 +100,7 @@ public class HomeActivity extends AppCompatActivity {
         jacketCard.setOnClickListener(v -> startActivity(new Intent(this, JacketActivity.class)));
         if (btnMyLooks != null) btnMyLooks.setOnClickListener(v -> startActivity(new Intent(this, MyLooksActivity.class)));
 
-        // Handle Bottom Navigation Clicks
+
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.bottom_favorites) {

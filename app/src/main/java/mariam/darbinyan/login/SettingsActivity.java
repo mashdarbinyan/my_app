@@ -21,12 +21,12 @@ public class SettingsActivity extends AppCompatActivity {
         SwitchCompat darkModeSwitch = findViewById(R.id.switch_dark_mode);
         LinearLayout aboutBtn = findViewById(R.id.btn_about);
 
-        // Load saved preference
+
         sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         boolean isDarkMode = sharedPreferences.getBoolean("DarkMode", false);
         darkModeSwitch.setChecked(isDarkMode);
 
-        // Dark Mode Toggle Logic
+
         darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -34,7 +34,7 @@ public class SettingsActivity extends AppCompatActivity {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
 
-            // Save the choice
+
             sharedPreferences.edit().putBoolean("DarkMode", isChecked).apply();
         });
 

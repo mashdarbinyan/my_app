@@ -29,7 +29,7 @@ public class AccountActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        // Initialize Views
+
         userEmail = findViewById(R.id.txt_user_email);
         wardrobeCount = findViewById(R.id.stat_total_items);
         styleLevel = findViewById(R.id.stat_style_level);
@@ -44,13 +44,13 @@ public class AccountActivity extends AppCompatActivity {
             userEmail.setText(user.getEmail());
             String userId = user.getUid();
 
-            // 1. Load Wardrobe Numbers
+
             loadWardrobeStats(userId);
 
-            // 2. Load Profile Details (Nickname/DOB)
+
             loadUserData(userId);
 
-            // 3. Set Save Button Listener
+
             btnSave.setOnClickListener(v -> saveUserProfile(userId));
         }
     }
@@ -102,9 +102,9 @@ public class AccountActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 long totalItems = 0;
-                // Loop through categories to count total clothes
+
                 for (DataSnapshot category : snapshot.getChildren()) {
-                    // Skip the ProfileDetails node so it doesn't count as clothing
+
                     if (!category.getKey().equals("ProfileDetails")) {
                         totalItems += category.getChildrenCount();
                     }
